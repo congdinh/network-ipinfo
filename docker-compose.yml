@@ -5,10 +5,10 @@ services:
     image: mpolden/echoip
     container_name: network-ipinfo
     command: >
-      -l 0.0.0.0:8080
       -a /data/GeoLite2-ASN.mmdb
       -c /data/GeoLite2-City.mmdb
       -f /data/GeoLite2-Country.mmdb
+      -H X-Forwarded-For
     volumes:
       - './geolite-data:/data'
     ports:

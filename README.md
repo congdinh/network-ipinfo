@@ -15,30 +15,71 @@ This is the code that powers https://ifconfig.co. Public Source from ifconfig.co
 A Docker Compose config might look like this
 
 ```
-version: "3.8"
+version: '3.8'
+
 services:
   echoip:
     image: mpolden/echoip
+    container_name: network-ipinfo
     command: >
-      -l 0.0.0.0:8080
       -a /data/GeoLite2-ASN.mmdb
       -c /data/GeoLite2-City.mmdb
       -f /data/GeoLite2-Country.mmdb
-    ports:
-      - "8080:8080"
+      -H X-Forwarded-For
     volumes:
-      - "./:/data"
+      - './geolite-data:/data'
+    ports:
+      - '127.0.0.1:9099:8080' # Expose port 8080
+    environment:
+      ECHOIP_PORT: '8080' # Optional: Define custom environment variables here
     restart: unless-stopped
 ```
 
+Require set `X-Forwarded-For` to get Real-IP from network proxy
 Extract geolite-data: `tar -xzf geolite-data.tar.gz`
 Running docker at port 9099: `docker-compose up`
 
-Data files:
+GeoData files:
 
 - [GeoLite2-ASN](https://github.com/wp-statistics/GeoLite2-ASN)
 - [GeoLite2-Country](https://github.com/wp-statistics/GeoLite2-Country)
 - [GeoLite2-City](https://github.com/wp-statistics/GeoLite2-City)
+
+## Nginx configuration
+
+You can run this server with your own domain.
+
+```
+server {
+    listen 80;
+    listen [::]:80;
+    ...
+    location / {
+      if ($http_user_agent !~* (curl|wget)) {
+          return 301 https://$server_name$request_uri;
+      }
+      proxy_set_header  Host $host;
+      proxy_set_header  X-Real-IP $remote_addr;
+      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header  X-Forwarded-Proto $scheme;
+      proxy_pass  http://localhost:9099;
+    }
+}
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    ssl_certificate /path/to/ssl/chain.pem;
+    ssl_certificate_key /path/to/ssl/private.key;
+    ...
+    location / {
+      proxy_set_header  Host $host;
+      proxy_set_header  X-Real-IP $remote_addr;
+      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header  X-Forwarded-Proto $scheme;
+      proxy_pass  http://localhost:9099;
+    }
+}
+```
 
 ## Usage
 
@@ -173,3 +214,9 @@ Usage of echoip:
   -t string
     	Path to template directory (default "html")
 ```
+
+### TODO
+
+- [ ] Auto update GeoIP db
+
+- [ ] Github Actions
