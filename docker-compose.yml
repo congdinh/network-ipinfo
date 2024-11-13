@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  echoip:
+    image: mpolden/echoip
+    container_name: network-ipinfo
+    command: >
+      -l 0.0.0.0:8080
+      -a /data/GeoLite2-ASN.mmdb
+      -c /data/GeoLite2-City.mmdb
+      -f /data/GeoLite2-Country.mmdb
+    volumes:
+      - './geolite-data:/data'
+    ports:
+      - '9099:8080' # Expose port 8080
+    environment:
+      ECHOIP_PORT: '8080' # Optional: Define custom environment variables here
+    restart: unless-stopped
