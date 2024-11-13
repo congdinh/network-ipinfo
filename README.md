@@ -1,10 +1,14 @@
-# echoip
+# network-ipinfo
+
+> The best tool to find your own IP address, and information about it.
 
 ![Build Status](https://github.com/mpolden/echoip/workflows/ci/badge.svg)
 
-A simple service for looking up your IP address. This is the code that powers
-https://ifconfig.co.
-Public Source from ifconfig.co
+A simple service for looking up your IP address.
+What do we know about this IP address?
+This is the code that powers https://ifconfig.co. Public Source from ifconfig.co
+
+![](./network-check.png)
 
 ## Dockerize
 
